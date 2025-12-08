@@ -54,7 +54,7 @@ export const TRIP_DATA = {
       date: "09",
       fullDate: "3月9日 (一)",
       location: "嵐山 (Arashiyama)",
-      heroImage: "https://images.unsplash.com/photo-1571235479483-3765e998822d?q=80&w=800&auto=format&fit=crop", // 嵐山
+      heroImage: "public/images/Arashiyama.webp", // 嵐山
       heroTitle: "嵐山竹林與天龍寺",
       weather: { current: "10°", desc: "微雨", hourly: ["10°", "10°", "9°", "9°", "8°"] },
       activities: [
@@ -85,7 +85,7 @@ export const TRIP_DATA = {
       date: "11",
       fullDate: "3月11日 (三)",
       location: "大阪 (Osaka)",
-      heroImage: "https://images.unsplash.com/photo-1590559399607-90d523192ffa?q=80&w=800&auto=format&fit=crop", // 道頓堀
+      heroImage: "public/images/orange-street-in-osaka.jpeg", // 道頓堀
       heroTitle: "移動日與南大阪潮流",
       weather: { current: "15°", desc: "多雲", hourly: ["14°", "15°", "15°", "14°", "13°"] },
       activities: [
@@ -101,7 +101,7 @@ export const TRIP_DATA = {
       date: "12",
       fullDate: "3月12日 (四)",
       location: "USJ",
-      heroImage: "src/assets/super-nintendo-world.jpg",
+      heroImage: "public/images/super-nintendo-world.jpg",
       heroTitle: "環球影城 全日遊",
       weather: { current: "16°", desc: "晴時多雲", hourly: ["15°", "16°", "16°", "14°", "12°"] },
       activities: [
@@ -147,7 +147,7 @@ export const TRIP_DATA = {
       date: "15",
       fullDate: "3月15日 (日)",
       location: "大阪 -> 台北",
-      heroImage: "https://images.unsplash.com/photo-1575480246283-e9104764b855?q=80&w=800&auto=format&fit=crop", // 通天閣
+      heroImage: "public/images/Tsutenkaku.webp", // 通天閣
       heroTitle: "新世界與返程",
       weather: { current: "14°", desc: "晴朗", hourly: ["13°", "14°", "14°", "13°", "12°"] },
       activities: [
