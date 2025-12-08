@@ -1,9 +1,164 @@
 import React, { useState } from 'react';
 import { TRIP_DATA } from './itineraryData';
 import { RESTAURANT_DATA } from './RestaurantBucketList'; // 匯入新的餐廳資料
-import { MapPin, Navigation, Sun, Cloud, Clock, Utensils, Train, ShoppingBag, Camera, Info, Home, FileText, ChevronRight, Star, ExternalLink } from 'lucide-react';
+import { MapPin, Navigation, Sun, Cloud, Clock, Utensils, Train, ShoppingBag, Camera, Info, Home, FileText, ChevronRight, Star, ExternalLink, X, Globe, Map as MapIcon } from 'lucide-react';
 
 // --- Components (共用) ---
+// --- ✨ NEW: 詳細資訊彈窗 (Modal) ---
+const ActivityModal = ({ item, onClose }) => {
+  if (!item || !item.details) return null;
+  const { details } = item;
+
+  // 定義頂部顏色與標籤文字
+  const headerStyle = item.type === 'food' 
+    ? 'bg-[#E07A5F] text-white'  // Food: 溫暖赤陶色
+    : 'bg-[#5F8D77] text-white'; // Sightseeing: 抹茶綠
+  
+  const typeLabel = item.type === 'food' ? 'DINING • 美食' : 'SIGHTSEEING • 景點';
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none">
+      {/* 背景遮罩 */}
+      <div 
+        className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity pointer-events-auto" 
+        onClick={onClose}
+      ></div>
+
+      {/* 卡片本體 */}
+      <div className="bg-[#F8F7F4] w-full max-w-md sm:rounded-3xl rounded-t-3xl shadow-2xl transform transition-transform duration-300 pointer-events-auto max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col">
+        
+        {/* ✨ 頂部滿版色塊 (取代原本的白色 Header) */}
+        <div className={`sticky top-0 z-10 px-6 py-5 flex justify-between items-center shadow-sm ${headerStyle}`}>
+          <div className="flex items-center gap-2">
+            {/* 根據類型顯示不同 ICON */}
+            {item.type === 'food' ? <Utensils size={16} /> : <Camera size={16} />}
+            <span className="text-xs font-bold tracking-[0.15em] uppercase">
+              {typeLabel}
+            </span>
+          </div>
+          
+          {/* 關閉按鈕 (白色半透明，融入背景) */}
+          <button 
+            onClick={onClose} 
+            className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors backdrop-blur-md"
+          >
+            <X size={18} className="text-white" />
+          </button>
+        </div>
+
+        <div className="p-6 pb-10">
+          {/* 標題與地址 */}
+          <h2 className="text-2xl font-serif font-bold text-stone-800 mb-2">{item.title}</h2>
+          <div className="flex items-start gap-1 text-xs text-stone-500 mb-6">
+            <MapPin size={12} className="mt-0.5 text-rose-500" />
+            <span className="underline decoration-stone-300 underline-offset-4">{details.address}</span>
+          </div>
+
+          {/* 🚃 交通攻略 */}
+          {details.transportGuide && (
+            <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-sm mb-6">
+              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <Train size={12} /> 交通攻略
+              </h3>
+              <p className="text-sm font-medium text-stone-700 leading-relaxed">
+                {details.transportGuide}
+              </p>
+            </div>
+          )}
+
+          {details.route && (
+            <div className="mb-8">
+              <h3 className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <MapIcon size={14} /> 推薦走訪順序 (Route)
+              </h3>
+              <div className="space-y-0 pl-2">
+                {details.route.map((spot, i) => (
+                  <div key={i} className="relative pl-8 pb-6 border-l-2 border-stone-200 last:border-0 last:pb-0">
+                    {/* Timeline Dot */}
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-[#5F8D77]"></div>
+                    
+                    {/* Content */}
+                    <div>
+                      <h4 className="font-bold text-stone-800 text-base mb-1 leading-none pt-0.5">
+                        {spot.name}
+                      </h4>
+                      <p className="text-xs text-stone-500 leading-relaxed mt-1">
+                        {spot.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 🗣️ 指差確認 / 推薦菜單區 (如果是餐廳) */}
+          {item.type === 'food' && details.menu && (
+            <div className="mb-8">
+              <h3 className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <Utensils size={14} /> 推薦菜單 (Point & Speak)
+              </h3>
+              <div className="space-y-3">
+                {details.menu.map((m, i) => (
+                  <div key={i} className="bg-white p-3 rounded-xl border border-stone-200 shadow-sm flex justify-between items-center">
+                    <div>
+                      <div className="font-bold text-lg text-stone-800">{m.cn}</div>
+                      <div className="text-xs text-stone-400">{m.desc}</div>
+                    </div>
+                    <div className="text-right">
+                       <div className="font-serif text-sm font-bold text-stone-600 bg-stone-100 px-2 py-1 rounded">{m.jp}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 📖 關於此處 (故事與介紹) */}
+          <div className="mb-8 relative pl-4 border-l-2 border-stone-300">
+            <h3 className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-2">關於此處 (About)</h3>
+            <p className="text-sm text-stone-600 leading-7 whitespace-pre-line">
+              {details.story}
+            </p>
+            {details.tips && (
+              <div className="mt-4 bg-orange-50 p-3 rounded-lg text-xs text-orange-700 border border-orange-100">
+                <span className="font-bold">💡 貼心提醒：</span> {details.tips}
+              </div>
+            )}
+          </div>
+
+          {/* 🔗 底部按鈕區 */}
+          <div className="grid gap-3">
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + " " + details.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 bg-[#3A4D39] text-white py-3 rounded-xl font-bold shadow-lg active:scale-[0.98] transition-transform"
+            >
+              <Navigation size={18} /> Google Maps 導航
+            </a>
+            
+            {details.website && (
+              <a 
+                href={details.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-stone-800 text-white py-3 rounded-xl font-bold shadow-lg active:scale-[0.98] transition-transform"
+              >
+                <Globe size={18} /> 官方網站
+              </a>
+            )}
+          </div>
+          
+          <div className="text-center mt-6">
+             <span className="text-[10px] text-stone-300 tracking-widest uppercase">wino x Gemini3</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const WeatherWidget = ({ weather }) => (
   <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 mb-6 shadow-sm border border-white/50">
@@ -29,17 +184,29 @@ const WeatherWidget = ({ weather }) => (
   </div>
 );
 
-const TimelineItem = ({ item, isLast }) => {
+const TimelineItem = ({ item, isLast, onSelect }) => {
   const getIcon = (type) => {
     switch(type) {
       case 'food': return <Utensils size={14} className="text-orange-500" />;
       case 'transport': return <Train size={14} className="text-blue-500" />;
       case 'sight': return <Camera size={14} className="text-emerald-500" />;
       case 'shopping': return <ShoppingBag size={14} className="text-rose-500" />;
+      case 'hotel': return <Home size={14} className="text-indigo-500" />;
       default: return <Info size={14} className="text-stone-400" />;
     }
   };
-  const openGoogleMaps = () => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title)}`, '_blank');
+
+  // 如果有 details 屬性，則顯示可點擊的樣式，否則為一般顯示
+  const hasDetails = !!item.details;
+
+  const handleClick = () => {
+    if (hasDetails) {
+      onSelect(item);
+    } else {
+      // 如果沒有詳細資料，舊行為：直接開地圖
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title)}`, '_blank');
+    }
+  };
 
   return (
     <div className="flex gap-4 relative">
@@ -49,26 +216,39 @@ const TimelineItem = ({ item, isLast }) => {
          </div>
          {!isLast && <div className="w-[2px] flex-1 bg-stone-200 my-1"></div>}
       </div>
-      <div onClick={openGoogleMaps} className="flex-1 bg-white rounded-2xl p-4 mb-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] border border-stone-50 active:scale-[0.98] transition-transform cursor-pointer">
+      <div 
+        onClick={handleClick}
+        className={`flex-1 bg-white rounded-2xl p-4 mb-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] border border-stone-50 transition-all ${hasDetails ? 'cursor-pointer active:scale-[0.98] hover:border-stone-200' : ''}`}
+      >
         <div className="flex justify-between items-start mb-2">
           <div className="text-2xl font-light text-stone-800 tracking-tighter">{item.time}</div>
           {item.tag && <span className="text-[10px] font-bold text-white bg-stone-800 px-2 py-1 rounded-full">{item.tag}</span>}
         </div>
         <h3 className="text-lg font-bold text-stone-800 mb-1 leading-tight">{item.title}</h3>
-        <p className="text-xs text-stone-500 leading-relaxed">{item.desc}</p>
+        <p className="text-xs text-stone-500 leading-relaxed line-clamp-2">{item.desc}</p>
+        
+        {hasDetails ? (
+          <div className="mt-3 pt-3 border-t border-stone-50 flex items-center justify-between text-[10px] text-stone-400 font-bold">
+            <span className="flex items-center gap-1 text-blue-500"><Info size={12} /> 查看攻略與菜單</span>
+            <ChevronRight size={12} />
+          </div>
+        ) : (
+          <div className="mt-3 pt-3 border-t border-stone-50 flex items-center gap-1 text-[10px] text-stone-300 font-bold">
+            <Navigation size={10} /> 導航
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 // --- VIEW 1: 主頁 (HomeView) ---
-const HomeView = () => {
+const HomeView = ({ onSelectActivity }) => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const currentDay = TRIP_DATA.days[selectedDayIndex];
 
   return (
     <div className="animate-in fade-in duration-500">
-      {/* Date Scroller */}
       <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-40 pt-12 pb-4 border-b border-stone-100 max-w-md mx-auto">
         <div className="text-center mb-4">
           <h1 className="text-xs font-bold tracking-[0.2em] text-stone-400 uppercase">{TRIP_DATA.meta.title}</h1>
@@ -103,7 +283,12 @@ const HomeView = () => {
 
         <div className="mt-2">
           {currentDay.activities.map((item, index) => (
-            <TimelineItem key={index} item={item} isLast={index === currentDay.activities.length - 1} />
+            <TimelineItem 
+              key={index} 
+              item={item} 
+              isLast={index === currentDay.activities.length - 1} 
+              onSelect={onSelectActivity} // 傳遞點擊事件
+            />
           ))}
         </div>
       </div>
@@ -245,13 +430,23 @@ const InfoView = () => {
 // --- Main App Component ---
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
+  const [selectedActivity, setSelectedActivity] = useState(null);
 
   return (
     <div className="min-h-screen bg-[#F8F7F4] font-sans max-w-md mx-auto relative overflow-hidden text-stone-800">
       
+      {selectedActivity && (
+        <ActivityModal 
+          item={selectedActivity} 
+          onClose={() => setSelectedActivity(null)} 
+        />
+      )}
+
       {/* Content Area */}
       {activeTab === 'restaurant' && <RestaurantView />}
-      {activeTab === 'home' && <HomeView />}
+      {activeTab === 'home' && (
+        <HomeView onSelectActivity={setSelectedActivity} />
+      )}
       {activeTab === 'info' && <InfoView />}
 
       {/* Bottom Navigation Toolbar */}
